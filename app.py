@@ -74,8 +74,8 @@ try:
       chat_completion = client.chat.completions.create(
     messages=[{"role": "user", "content": prompt}],
     model="llama-3.1-8b-instant",
-)
-      )
+    )
+    
       st.success(chat_completion.choices[0].message.content)
   elif user_question and not groq_api_key:
     st.warning("Please enter your free Groq API key above to use the AI.")

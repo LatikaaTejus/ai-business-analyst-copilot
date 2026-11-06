@@ -46,23 +46,21 @@ try:
   st.plotly_chart(fig, use_container_width=True)
 
   # AI Section
-  st.markdown("---")
-  st.subheader("💬 AI Business Analyst Assistant")
-  st.markdown(
-      "Type your free Groq API key below and ask strategic questions about this"
-      " data."
-  )
+# AI Section (Using Secure Streamlit Secrets)
+st.markdown("---")
+st.subheader("💬 AI Business Analyst Assistant")
 
-  groq_api_key = st.text_input(
-      "Enter your Free Groq API Key:", type="password", placeholder="gsk_..."
-  )
+# Check if the secret is configured
+if "GROQ_API_KEY" in st.secrets:
+  groq_api_key = st.secrets["GROQ_API_KEY"]
+
   user_question = st.text_input(
-      "Ask a question (e.g., 'What is driving churn in month-to-month"
+      "Ask a strategic question (e.g., 'What is driving churn in month-to-month"
       " contracts?'):"
   )
 
-  if user_question and groq_api_key:
-    client = Groq(api_key=groq_api_key)
+  if user_question:
+    client = Groq()
     prompt = (
         f"You are an expert Business Analyst. Based on a Telco dataset with"
         f" {total_customers} customers and an overall churn rate of"
@@ -72,16 +70,12 @@ try:
 
     with st.spinner("AI is analyzing the business metrics..."):
       chat_completion = client.chat.completions.create(
-    messages=[{"role": "user", "content": prompt}],
-    model="openai/gpt-oss-20b",
-    )
-    
+          messages=[{"role": "user", "content": prompt}],
+          model="openai/gpt-oss-20b",
+      )
       st.success(chat_completion.choices[0].message.content)
-  elif user_question and not groq_api_key:
-    st.warning("Please enter your free Groq API key above to use the AI.")
-
-except Exception as e:
-  st.error(
-      f"⚠️ Error loading dataset: {e}. Make sure 'Telco-Customer-Churn.csv' is"
-      " uploaded in the same GitHub repository as app.py!"
+else:
+  st.warning(
+      "⚠️ Groq API Key not found in Streamlit Secrets. Please configure it in"
+      " your app settings."
   )

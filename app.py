@@ -80,7 +80,7 @@ if "GROQ_API_KEY" in st.secrets:
     with st.spinner("AI is analyzing the business metrics..."):
       chat_completion = client.chat.completions.create(
           messages=[{"role": "user", "content": prompt}],
-          model="llama-3.1-8b-instant",
+          model="openai/gpt-oss-20b",
       )
       st.success(chat_completion.choices[0].message.content)
 else:

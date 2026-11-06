@@ -72,8 +72,9 @@ try:
 
     with st.spinner("AI is analyzing the business metrics..."):
       chat_completion = client.chat.completions.create(
-          messages=[{"role": "user", "content": prompt}],
-          model="llama-3.3-70b-versatile",
+    messages=[{"role": "user", "content": prompt}],
+    model="llama-3.1-8b-instant",
+)
       )
       st.success(chat_completion.choices[0].message.content)
   elif user_question and not groq_api_key:

@@ -45,7 +45,7 @@ try:
   )
   st.plotly_chart(fig, use_container_width=True)
 
-  # AI Section
+
 # AI Section (Using Secure Streamlit Secrets)
 st.markdown("---")
 st.subheader("💬 AI Business Analyst Assistant")

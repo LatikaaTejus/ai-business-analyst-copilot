@@ -18,10 +18,10 @@ st.markdown(
 # Load data securely with caching
 @st.cache_data
 def load_data():
-  # This matches the filename you will upload to GitHub
   return pd.read_csv("Telco-Customer-Churn.csv")
 
 
+# --- 1. DATA LOADING & METRICS (Safely handled with try/except) ---
 try:
   df = load_data()
 
@@ -45,12 +45,21 @@ try:
   )
   st.plotly_chart(fig, use_container_width=True)
 
+except Exception as e:
+  st.error(
+      f"⚠️ Error loading dataset: {e}. Make sure 'Telco-Customer-Churn.csv' is"
+      " uploaded in the same GitHub repository as app.py!"
+  )
+  # Set fallback values so the rest of the script doesn't crash
+  total_customers = 0
+  churn_rate = 0.0
 
-# AI Section (Using Secure Streamlit Secrets)
+
+# --- 2. AI ASSISTANT SECTION (Cleanly outside the try/except block) ---
 st.markdown("---")
 st.subheader("💬 AI Business Analyst Assistant")
 
-# Check if the secret is configured
+# Check if the secret is configured in Streamlit Cloud
 if "GROQ_API_KEY" in st.secrets:
   groq_api_key = st.secrets["GROQ_API_KEY"]
 
@@ -60,7 +69,7 @@ if "GROQ_API_KEY" in st.secrets:
   )
 
   if user_question:
-    client = Groq()
+    client = Groq(api_key=groq_api_key)
     prompt = (
         f"You are an expert Business Analyst. Based on a Telco dataset with"
         f" {total_customers} customers and an overall churn rate of"
@@ -71,7 +80,7 @@ if "GROQ_API_KEY" in st.secrets:
     with st.spinner("AI is analyzing the business metrics..."):
       chat_completion = client.chat.completions.create(
           messages=[{"role": "user", "content": prompt}],
-          model="openai/gpt-oss-20b",
+          model="llama-3.1-8b-instant",
       )
       st.success(chat_completion.choices[0].message.content)
 else:

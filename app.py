@@ -25,24 +25,34 @@ def load_data():
 try:
   df = load_data()
 
-  # Key Business Metrics Calculation
+  # Key Business Metrics Calculations
   total_customers = len(df)
-  churned = len(df[df["Churn"] == "Yes"])
-  churn_rate = (churned / total_customers) * 100
+  churned_df = df[df["Churn"] == "Yes"]
+  churned_count = len(churned_df)
+  churn_rate = (churned_count / total_customers) * 100
+
+  # Financial Impact Metric ($ Loss Calculation)
+  if "MonthlyCharges" in df.columns:
+    monthly_revenue_at_risk = churned_df["MonthlyCharges"].sum()
+  else:
+    monthly_revenue_at_risk = 0.0
 
   # --- CREATE PROFESSIONAL TABS ---
   tab1, tab2, tab3 = st.tabs([
-      "📊 Executive Dashboard",
-      "🔍 Data Explorer",
-      "💬 AI Business Copilot",
+      " Executive Dashboard",
+      " Data Explorer",
+      " AI Business Copilot",
   ])
 
   with tab1:
     st.subheader("Executive KPI Summary")
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     col1.metric("Total Customers", f"{total_customers:,}")
-    col2.metric("Churned Customers", f"{churned:,}")
+    col2.metric("Churned Customers", f"{churned_count:,}")
     col3.metric("Overall Churn Rate", f"{churn_rate:.1f}%")
+    col4.metric(
+        "Monthly Revenue Loss", f"${monthly_revenue_at_risk:,.2f}", delta="-Risk"
+    )
 
     st.markdown("---")
 
@@ -59,10 +69,12 @@ try:
 
     # Professional Analyst Commentary Box
     st.info(
-        "💡 **Analyst Insight:** Month-to-month contracts exhibit disproportionate"
-        " churn rates compared to one-year and two-year commitments. Retention"
-        " marketing budgets should target month-to-month subscribers within"
-        " their first 90 days of tenure."
+        f" **Analyst Insight:** Month-to-month contracts exhibit"
+        " disproportionate churn rates compared to long-term commitments."
+        f" Current monthly revenue exposure stands at"
+        f" **${monthly_revenue_at_risk:,.2f}**. Retention campaigns should"
+        " target month-to-month subscribers within their first 90 days of"
+        " tenure."
     )
 
   with tab2:
@@ -89,27 +101,40 @@ try:
     )
 
   with tab3:
-    st.subheader("💬 AI Business Analyst Assistant")
+    st.subheader("AI Business Analyst Assistant")
     st.markdown(
         "Ask strategic business questions regarding customer retention and"
         " churn drivers."
+    )
+
+    # Pre-set prompts for recruiters/hiring managers
+    st.markdown("**Sample Strategic Prompts to Try:**")
+    st.markdown(
+        "* `What pricing strategy can reduce drop-off in month-to-month"
+        " contracts?`\n* `How can we convert high-risk subscribers into 1-year"
+        " contracts?`\n* `Draft an executive summary of our top revenue retention"
+        " risks.`"
     )
 
     if "GROQ_API_KEY" in st.secrets:
       groq_api_key = st.secrets["GROQ_API_KEY"]
 
       user_question = st.text_input(
-          "Enter your business query (e.g., 'What strategies can we deploy to"
-          " reduce month-to-month churn?'):"
+          "Enter your business query:",
+          placeholder=(
+              "e.g., What pricing strategy can reduce drop-off in"
+              " month-to-month contracts?"
+          ),
       )
 
       if user_question:
         client = Groq(api_key=groq_api_key)
         prompt = (
             f"You are an expert Enterprise Business Analyst. Based on a Telco"
-            f" dataset with {total_customers} customers and an overall churn"
-            f" rate of {churn_rate:.1f}%, answer this question concisely with"
-            f" actionable, professional business recommendations:"
+            f" dataset with {total_customers} customers, an overall churn"
+            f" rate of {churn_rate:.1f}%, and a monthly revenue risk of"
+            f" ${monthly_revenue_at_risk:,.2f}, answer this question concisely"
+            f" with actionable, professional business recommendations:"
             f" {user_question}"
         )
 
@@ -121,12 +146,12 @@ try:
           st.success(chat_completion.choices[0].message.content)
     else:
       st.warning(
-          "⚠️ Groq API Key not found in Streamlit Secrets. Please configure it"
+          "Groq API Key not found in Streamlit Secrets. Please configure it"
           " in your Streamlit app settings."
       )
 
 except Exception as e:
   st.error(
-      f"⚠️ Error loading dataset: {e}. Make sure 'Telco-Customer-Churn.csv' is"
+      f"Error loading dataset: {e}. Make sure 'Telco-Customer-Churn.csv' is"
       " uploaded in your GitHub repository."
   )
